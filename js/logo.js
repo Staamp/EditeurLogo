@@ -1,3 +1,6 @@
+/*
+ * Classe regroupant les différentes commandes pour dessiner
+ */
 class command{
 	constructor(){
 		this.buttonLeftPressed = false;
@@ -51,12 +54,19 @@ class command{
 		return this.ancreY;
 	}
 }
+
+/*
+ * Declaration des variables
+ */
 var xCanvas = 500;
 var yCanvas = 500;
 var commande = new command();
 var mode = "";
 var taille = 5;
 
+/*
+ * Listener pour détecter un clique pour réaliser un nouveau dessin et appele la fonction clearCanvas
+ */
 document.addEventListener("DOMContentLoaded",function(e){
 	var overlay = document.getElementById('overlay');
 	overlay.addEventListener('mouseover',afficheCurseur);
@@ -66,13 +76,45 @@ document.addEventListener("DOMContentLoaded",function(e){
 	overlay.addEventListener('mousedown',click);
 	document.getElementById('new').addEventListener('click',clearCanvas);
 });
-
 function clearCanvas(){
 	var dessin = document.getElementById('dessin');
 	var cvsDessin = dessin.getContext('2d');
 	cvsDessin.clearRect(0,0,xCanvas,yCanvas);
 }
 
+/*
+ * Quitte le canvas
+ */
+function sortieCanvas(){
+	effaceCurseur();
+	if(commande.getButtonPressed()) {
+		switch (mode) {
+			case "rectangle": {
+				var longueur = commande.getX() - commande.getAncreX();
+				var largeur = commande.getY() - commande.getAncreY();
+				dessineRectangle(commande.getAncreX(), commande.getAncreY(), longueur, largeur);
+			}
+			break;
+			case "ligne":{
+				var dessin = document.getElementById('dessin');
+				var cvsDessin = dessin.getContext('2d');
+				cvsDessin.beginPath();
+				cvsDessin.strokeStyle = 'RGBa(255,255,255,1)';
+				cvsDessin.lineWidth = taille;
+				cvsDessin.moveTo(commande.getAncreX(),commande.getAncreY());
+				cvsDessin.lineTo(commande.getX(),commande.getY());
+				cvsDessin.stroke();
+			}
+			break;
+		}
+	}
+	commande.setButtonPressed(false);
+	afficheInformation();
+}
+
+/*
+ * Affiche le curseur lorsque l'on rentre sur le canvas
+ */
 function afficheCurseur(){
 	var input = document.getElementsByTagName('input');
 	taille = document.getElementById('size').value;
@@ -114,39 +156,18 @@ function afficheCurseur(){
 	}
 }
 
-function sortieCanvas(){
-	effaceCurseur();
-	if(commande.getButtonPressed()) {
-		switch (mode) {
-			case "rectangle": {
-				var longueur = commande.getX() - commande.getAncreX();
-				var largeur = commande.getY() - commande.getAncreY();
-				afficheRectangle(commande.getAncreX(), commande.getAncreY(), longueur, largeur);
-			}
-			break;
-			case "ligne":{
-				var dessin = document.getElementById('dessin');
-				var cvsDessin = dessin.getContext('2d');
-				cvsDessin.beginPath();
-				cvsDessin.strokeStyle = 'RGBa(255,255,255,1)';
-				cvsDessin.lineWidth = taille;
-				cvsDessin.moveTo(commande.getAncreX(),commande.getAncreY());
-				cvsDessin.lineTo(commande.getX(),commande.getY());
-				cvsDessin.stroke();
-			}
-			break;
-		}
-	}
-	commande.setButtonPressed(false);
-	afficheInformation();
-}
-
+/*
+ * Efface le curseur lorsque l'on quitte le canvas
+ */
 function effaceCurseur(){
 	var overlay = document.getElementById('overlay');
 	var cvsOverlay = overlay.getContext('2d');
 	cvsOverlay.clearRect(0,0,xCanvas,yCanvas);
 }
 
+/*
+ * Retourne les coodonnées actuelles
+ */
 function getCoord(e){
 	var rect = e.target.getBoundingClientRect();
 	var x = e.clientX - rect.left;
@@ -202,15 +223,26 @@ function getCoord(e){
 	commande.setLastY(y);
 }
 
+/*
+ * Affiche les informations de position actuelle et du clique de départ
+ */
 function afficheInformation(){
 	var div = document.getElementById('test');
 	div.innerHTML = "screen("+commande.getX()+","+commande.getY()+")\n"+commande.getButtonPressed()+"screen Last("+commande.getLastX()+","+commande.getY()+")";
 }
 
+/*
+ * Fonction pour gommer une partie du dessin
+ */
 function gommer(){
-	effaceRectangle(commande.getX(),commande.getY(),taille,taille);
+	var dessin = document.getElementById('dessin');
+	var cvsDessin = dessin.getContext('2d');
+	cvsDessin.clearRect(commande.getX(),commande.getY(),taille,taille);
 }
 
+/*
+ * Détecte un clique sur le canvas et affiche les informations
+ */
 function click(e) {
 	if (e.buttons === 1) {
 		commande.setButtonPressed(true);
@@ -251,24 +283,27 @@ function click(e) {
 	afficheInformation();
 }
 
+/*
+ * Dessine une ligne ou un rectangle et détecte le premier clique pour détecter la position de départ
+ */
 function release(e){
 	if(commande.getButtonPressed()) {
 		switch (mode) {
 			case "rectangle": {
 				var longueur = commande.getX() - commande.getAncreX();
 				var largeur = commande.getY() - commande.getAncreY();
-				afficheRectangle(commande.getAncreX(), commande.getAncreY(), longueur, largeur);
+				dessineRectangle(commande.getAncreX(), commande.getAncreY(), longueur, largeur);
 			}
-				break;
-				case "ligne":{
-					var dessin = document.getElementById('dessin');
-					var cvsDessin = dessin.getContext('2d');
-					cvsDessin.beginPath();
-					cvsDessin.strokeStyle = 'RGBa(255,255,255,1)';
-					cvsDessin.lineWidth = taille;
-					cvsDessin.moveTo(commande.getAncreX(),commande.getAncreY());
-					cvsDessin.lineTo(commande.getX(),commande.getY());
-					cvsDessin.stroke();
+			break;
+			case "ligne":{
+				var dessin = document.getElementById('dessin');
+				var cvsDessin = dessin.getContext('2d');
+				cvsDessin.beginPath();
+				cvsDessin.strokeStyle = 'RGBa(255,255,255,1)';
+				cvsDessin.lineWidth = taille;
+				cvsDessin.moveTo(commande.getAncreX(),commande.getAncreY());
+				cvsDessin.lineTo(commande.getX(),commande.getY());
+				cvsDessin.stroke();
 			}
 			break;
 		}
@@ -277,21 +312,19 @@ function release(e){
 	afficheInformation();
 }
 
-function afficheRectangle(x,y,xd,yd){
+/*
+ * Dessine un rectangle avec l'outil rectangle
+ */
+function dessineRectangle(x,y,xd,yd){
 	var dessin = document.getElementById('dessin');
 	var cvsDessin = dessin.getContext('2d');
 	cvsDessin.fillStyle = 'RGB(255,255,255)';
 	cvsDessin.fillRect(x, y, xd, yd);
 }
 
-function effaceRectangle(x,y,xc,yc){
-	var dessin = document.getElementById('dessin');
-	var cvsDessin = dessin.getContext('2d');
-	cvsDessin.clearRect(x,y,xc,yc);
-}
-
-
-
+/*
+ * Listener pour détecter un clique pour une sauvegarde et appele la fonction save()
+ */
 document.addEventListener("DOMContentLoaded",function(e){
 	var overlay = document.getElementById('overlay');
 	overlay.addEventListener('mouseover',afficheCurseur);
@@ -301,7 +334,6 @@ document.addEventListener("DOMContentLoaded",function(e){
 	overlay.addEventListener('mousedown',click);
 	document.getElementById('save').addEventListener('click',save);
 });
-
 function save() {
 	if (localStorage) {
 		var nomImage = "";
@@ -354,7 +386,10 @@ function save() {
 }
 
 
-
+/*
+ * Listener pour détecter un clique pour un chargement d'une image et appele la fonction open
+ */
+ //CORRIGER BUG
 document.addEventListener("DOMContentLoaded",function(e){
 	var overlay = document.getElementById('overlay');
 	overlay.addEventListener('mouseover',afficheCurseur);
@@ -364,12 +399,12 @@ document.addEventListener("DOMContentLoaded",function(e){
 	overlay.addEventListener('mousedown',click);
 	document.getElementById('open').addEventListener('click',open);
 });
-
 function open(){
-	console.log("testopen");
-	var dataImage = localStorage.getItem('imgData');
+	var imgALoad = prompt("Saisir le nom de l'image à charger");
+	var dataImage = localStorage.getItem(imgALoad);
 	var Emplacement = document.getElementById('dessin');
-	Emplacement.src = "data:image/png;base64,"+dataImage;
+	//Emplacement.src = dataImage;
+	Emplacement.setAttribute("src", dataImage);
 }
 
 
